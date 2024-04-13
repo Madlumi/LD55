@@ -1,9 +1,11 @@
 #include "util/mutil.h"
 #include <stdio.h>
 #include "raylib.h"
+#include "raymath.h"
+
 
 TFS{
-   Vector2 pos;
+   V2 pos;
 }bee;
 CI sw=550,sh=450,tfps=60;
 
@@ -18,6 +20,9 @@ V tick(){
    }
    b.pos=GetMousePosition();
    FOR(bb_c,{
+      if (Vector2Distance(bb[i].pos, (V2){(F)sw/2, (F)sh/2}) < .01) {
+         RMARR(bb, i);BR;
+      }
       if(bb[i].pos.x>(F)sw/2 )bb[i].pos.x-=1;
       if(bb[i].pos.x<(F)sw/2 )bb[i].pos.x+=1;
       if(bb[i].pos.y>(F)sh/2 )bb[i].pos.y-=1;
@@ -33,7 +38,7 @@ V render(){
 }
 V startGame(I dif){
    IARR(bb);
-   b.pos=(Vector2){50,50};
+   b.pos=(V2){50,50};
 }
 V init(){
    InitWindow(sw, sh, "ld55");
