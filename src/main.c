@@ -2,58 +2,82 @@
 #include <stdio.h>
 #include "raylib.h"
 #include "raymath.h"
-
-
-TFS{
-   V2 pos;
-}bee;
+TFS{ V2 pos; V2 vel;}minion;
 CI sw=550,sh=450,tfps=60;
+TFS{
+   REC r;
+}block;
+#define IF if
+ARR(minion , bb, 10);
+ARR(block, w, 10);
+minion pl;
+CF Scale =.1, G = 9.81/Scale;
+V plT(){
+   pl.vel.x = 0;
+   pl.vel.y += G*GetFrameTime();
+   IF(IsKeyDown(KEY_A)){pl.vel.x = -3;}
+   IF(IsKeyDown(KEY_D)){pl.vel.x = 3;}
 
-
-ARR(bee , bb, 10);
-
-bee b;
-
+#define IN(x,l,h) ((l)<=(x)&&(x)<=(h))
+   V2 npx=Vector2Add(pl.pos,(V2){pl.vel.x,0});
+   V2 npy=Vector2Add(pl.pos,(V2){0,pl.vel.y});
+   V2 npxy=Vector2Add(pl.pos,pl.vel);
+   I COLX=0,COLY=0;
+   FOR(w_c,{
+       COLX += IN(npx.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npx.y, w[i].r.y, w[i].r.height+w[i].r.y);
+       COLY += IN(npx.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npy.y, w[i].r.y, w[i].r.height+w[i].r.y);
+       //COLX += IN(npxy.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npxy.y, w[i].r.y, w[i].r.height+w[i].r.y);
+       //COLY += IN(npxy.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npxy.y, w[i].r.y, w[i].r.height+w[i].r.y);
+   });
+   if(COLX){pl.vel.x=0;}
+   if(COLY){pl.vel.y=0;}
+   pl.pos=Vector2Add(pl.pos, pl.vel);
+}
 V tick(){
-   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-      AARR((bee){GetMousePosition()},bb); 
+   plT();
+   if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+      PUSH((minion){GetMousePosition()},bb); 
    }
-   b.pos=GetMousePosition();
    FOR(bb_c,{
-      if (Vector2Distance(bb[i].pos, (V2){(F)sw/2, (F)sh/2}) < .01) {
-         RMARR(bb, i);BR;
-      }
-      if(bb[i].pos.x>(F)sw/2 )bb[i].pos.x-=1;
-      if(bb[i].pos.x<(F)sw/2 )bb[i].pos.x+=1;
-      if(bb[i].pos.y>(F)sh/2 )bb[i].pos.y-=1;
-      if(bb[i].pos.y<(F)sh/2 )bb[i].pos.y+=1;
+      if(Vector2Distance(bb[i].pos, (V2){(F)sw/2, (F)sh/2}) < .01){ POP(bb, i);BR; }
+      if(bb[i].pos.x>(F)sw/2)bb[i].pos.x-=1;
+      if(bb[i].pos.x<(F)sw/2)bb[i].pos.x+=1;
+      if(bb[i].pos.y>(F)sh/2)bb[i].pos.y-=1;
+      if(bb[i].pos.y<(F)sh/2)bb[i].pos.y+=1;
    });
 }
 V render(){
-   FOR(bb_c,{
-      DrawCircle(bb[i].pos.x, bb[i].pos.y,6, YELLOW);
-   });
-      DrawCircle(b.pos.x, b.pos.y,10, DARKBLUE);
-      DrawText("base window", (sw/2)-50, (sh-20)/2, 20, LIGHTGRAY);
+   FOR(bb_c,{ DrawCircle(bb[i].pos.x, bb[i].pos.y,6, YELLOW); });
+   FOR(w_c,{ DrawRectangleRec(w[i].r , RAYWHITE);});
+   Rectangle pr = { pl.pos.x - 20, pl.pos.y - 40, 40, 40 };
+   DrawRectangleRec((pr), RED);
 }
+
 V startGame(I dif){
-   IARR(bb);
-   b.pos=(V2){50,50};
+   IARR(bb); IARR(w);
+   block b=(block){(REC){10,sh-50,sw-200,40}};
+   PUSH(b,w);
+   b=(block){(REC){10,100,5,sh}}; PUSH(b,w);
+   pl=(minion){(V2){100,333}};
+}
+V clear(){
+   FREEARR(bb);
+   FREEARR(w);
 }
 V init(){
    InitWindow(sw, sh, "ld55");
    SetTargetFPS(tfps);
 }
-V quit(){
-   CloseWindow(); 
-}
+V quit(){clear();CloseWindow(); }
+V loop(){W(!WindowShouldClose()){
+   tick();
+   BeginDrawing();ClearBackground(BLACK);render();EndDrawing();
+}}
+
 I main(){
    init(); 
    startGame(1);
-   W(!WindowShouldClose()){
-      tick();
-      BeginDrawing();ClearBackground(BLACK);render();EndDrawing();
-   }
+   loop();
    quit();
    R 0;
 }
