@@ -10,7 +10,7 @@ TFS{ V2 pos; V2 goal;}minion;
 TFS{ I type; }tile;
 
 //tile map 
-CI TS = 4; CI WW = 16; CI WH = 16;
+CI TS = 4; CI WW = 160; CI WH = 160;
 ARR(tile, map, WW*WH);
 enum tile{ NONE, BLOCK, };
 
@@ -28,6 +28,8 @@ V2 goNext(minion m){
    FOR(WW*WH,{ 
       FORYX(WH,WW,{
          if(mapFill[(x)+y*WW]!=-1){continue;}
+         if(map[(x)+y*WW].type!=NONE){continue;}
+
          if(x<WW-1)if(mapFill[(x+1)+y*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x+1)+y*WW]+1;}
          if(x>0 )if(mapFill[(x-1)+y*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x-1)+y*WW]+1;}
 
@@ -76,7 +78,7 @@ V startGame(I dif){
          map[i].type=NONE;
       }
    });
-   pl=(minion){(V2){5,5},(V2){10,10}};
+   pl=(minion){(V2){5,5},(V2){100,100}};
 }
 V clear(){
    FREEARR(map);
