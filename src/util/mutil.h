@@ -6,6 +6,7 @@
 #include <raylib.h>
 typedef Rectangle REC ;
 typedef Vector2 V2;
+typedef Vector3 V3;
 
 //----------------------
 //--useful typedefs-----

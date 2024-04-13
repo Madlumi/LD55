@@ -10,54 +10,106 @@ CI sw=948,sh=533,tfps=60;
 F camx, camy;
 minion pl;
 Camera2D camera={0};
-CF Scale =.1, G = 9.81/Scale;
-
-V plT(){
-   if(Vector2Distance(pl.pos,pl.next)<pl.ms){
-      pl.pos=pl.next;
-      pl.next=pl.pos;
-      if (IsKeyDown(KEY_D)){pl.next.x++;}
-      if (IsKeyDown(KEY_A)){pl.next.x--;}
-      if (IsKeyDown(KEY_S)){pl.next.y++;}
-      if (IsKeyDown(KEY_W)){pl.next.y--;}
-      // pl.pos=pl.next; pl.next=goNext(pl); 
-   }
-   else if(Vector2Distance(pl.pos,pl.next)>2){ pl.next=pl.pos; }
-
-   if(pl.pos.x<pl.next.x){pl.pos.x+=pl.ms;}
-   if(pl.pos.x>pl.next.x){pl.pos.x-=pl.ms;}
-   if(pl.pos.y<pl.next.y){pl.pos.y+=pl.ms;}
-   if(pl.pos.y>pl.next.y){pl.pos.y-=pl.ms;}
-}
-
+Camera cam3={0};
+#define FS  10 
+#define MTS 8
+TFS {
+   REC r;
+   I active;
+   V2 shape[MTS];
+}box;
+TFS {
+   I Fill;
+}build;
+ARR(build, builds, FS*FS);
+ARR(box, leftbar, 10);
+    Vector3 g0 = (Vector3){ -5.0f, 0.0f, -5.0f };
+    Vector3 g1 = (Vector3){ -5.0f, 0.0f,  5.0f };
+    Vector3 g2 = (Vector3){  5.0f, 0.0f,  5.0f };
+    Vector3 g3 = (Vector3){  5.0f, 0.0f, -5.0f };
 V tick(){
-   plT();
-   camera.target = (Vector2){ pl.pos.x*TS + 20.0f, pl.pos.y*TS + 20.0f };
 }
+
+      I sel=0;
+RayCollision mpin3d;
 V render(){
-   BeginMode2D(camera);
-   FOR(map_m,{if(map[i].type==BLOCK){ DrawRectangleRec((REC){ i%WW*TS,i/WW*TS,TS,TS} , RAYWHITE);}});
+   V2 m = GetMousePosition();
+   //BeginMode2D(camera);
+   //
+   FOR(leftbar_c,{DrawRectangleRec(leftbar[i].r,leftbar[i].active*CheckCollisionPointRec(m,leftbar[i].r)?BLUE:RED ); });
    Rectangle pr = { pl.pos.x*TS , pl.pos.y*TS, TS, TS };
    DrawRectangleRec((pr), RED);
-   EndMode2D();
+   //EndMode2D();
+   BeginMode3D(cam3);
+   DrawGrid(10,1);
+   Ray ray = GetScreenToWorldRay(GetMousePosition(), cam3);
+   mpin3d = GetRayCollisionQuad(ray, g0, g1, g2, g3);
+   FOR(builds_m, {if(builds[i].Fill==1){
+      DrawCube((V3){(i%FS)+.5-FS/2,.5,(i/FS)+.5-FS/2}, .9, .5, .9, RED); }
+   });
+   if ((mpin3d.hit) ){
+      I valid = 1;
+         I i = (I)round(mpin3d.point.x-.5)+FS/2+((I)round(mpin3d.point.z-.5)+FS/2)*FS;
+      FORX(MTS,{
+         if(builds[i + (I)leftbar[sel].shape[x].x+FS*(I)leftbar[sel].shape[x].y ].Fill>0){valid=0;}
+         if(i%FS + (I)leftbar[sel].shape[x].x<0){valid=0;}
+         if(i%FS + (I)leftbar[sel].shape[x].x>=FS){valid=0;}
+         if(i/FS + (I)leftbar[sel].shape[x].y<0){valid=0;}
+         if(i/FS + (I)leftbar[sel].shape[x].y>=FS){valid=0;}
+      })
+      if(IsMouseButtonPressed(0)){
+         if(valid){
+      FORX(MTS,{
+         builds[i + (I)leftbar[sel].shape[x].x+FS*(I)leftbar[sel].shape[x].y ].Fill=1;
+      })
+         
+      }
+      }
+      F X=round(mpin3d.point.x-.5)+.5;
+      F Z=round(mpin3d.point.z-.5)+.5 ;
+      F Y=round(mpin3d.point.y);
+
+      FORX(MTS,{
+      DrawCube( (V3){X+(I)leftbar[sel].shape[x].x,Y,Z+(I)leftbar[sel].shape[x].y}, 0.3f, 0.3f, 0.3f,valid? GREEN:RED);
+      });
+        }
+   EndMode3D();
+if(IsKeyPressed(KEY_ONE)){sel=0;}
+if(IsKeyPressed(KEY_ONE+1)){sel=1;}
+if(IsKeyPressed(KEY_R)){
+
+      FOR(MTS,{
+         I t=leftbar[sel].shape[i].x;
+         leftbar[sel].shape[i].x=-leftbar[sel].shape[i].y;
+         leftbar[sel].shape[i].y=t;
+      });
+   }
 }
 
 V startGame(I dif){
    IARR(map);
-   FOR(map_m,{ 
-      if(rand()%7==1){
-         map[i].type=BLOCK;}else{
-         map[i].type=NONE;
-      }
-   });
+   IARR(builds);
+   IARR(leftbar);
+   #define uwu (box){(REC){5, 5+i*55 , 200 , 50}, 1, (V2){ 0 }}
+   FOR(10,{ PUSH(uwu,leftbar);leftbar[i].active++; }) ;
+    cam3.position = (Vector3){ 0.0f, 10.0f, 10.0f }; // Camera position
+    cam3.target = (Vector3){ 0.0f, 0.0f, 0.0f };      // Camera looking at point
+    cam3.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
+    cam3.fovy = 45.0f;                                // Camera field-of-view Y
+    cam3.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+   //
+       Vector3 cubePosition = { 0.0f, 1.0f, 0.0f };
+    Vector3 cubeSize = { 2.0f, 2.0f, 2.0f };
+   Ray ray = { 0 };                    // Picking line ray
+    RayCollision collision = { 0 };     // Ray collision hit info
+   //
+   FOR(builds_m, {builds[i].Fill=0;});
 
-   camera.target = (Vector2){ pl.pos.x + 20.0f, pl.pos.y + 20.0f };
-   camera.offset = (Vector2){ sw/2.0f, sh/2.0f };
-   camera.rotation = 0.0f;
-   camera.zoom = 1.f;
+   leftbar[0].shape[1]=(V2){1,0};
+   leftbar[0].shape[3]=(V2){2,0};
+   leftbar[0].shape[2]=(V2){0,1};
 
-   pl=(minion){(V2){(I)(WW/2),WH-2},(V2){(I)(WW/2),1}};
-   pl.ms=.1;
+   leftbar[1].shape[2]=(V2){1,1};
 }
 V clear(){
    FREEARR(map);
@@ -69,7 +121,7 @@ V init(){
 V quit(){clear();CloseWindow(); }
 V loop(){W(!WindowShouldClose()){
    tick();
-   BeginDrawing();ClearBackground(BLACK);render();EndDrawing();
+   BeginDrawing();ClearBackground(RAYWHITE);render();EndDrawing();
 }}
 
 I main(){
