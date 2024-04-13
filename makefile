@@ -20,7 +20,7 @@ files=src/main.c
 run: linux
 	./$(od)$(name)
 runwin: windows
-	./$(od)$(name).exe
+	wine ./$(od)$(name).exe
 runweb: wasm
 	firefox-esr http://0.0.0.0:$(p)/
 	cd $(wd) && python3 -m http.server $(p)

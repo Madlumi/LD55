@@ -11,7 +11,7 @@ typedef const  float       CF;
 typedef const  double      CD;
 typedef const  char        CC;
 typedef const  void        CV;
-
+#define TFS typedef struct
 
 #define CON const
 #define R return 
