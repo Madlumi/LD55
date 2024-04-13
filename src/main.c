@@ -1,68 +1,85 @@
 #include "util/mutil.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include "raylib.h"
 #include "raymath.h"
-TFS{ V2 pos; V2 vel;}minion;
 CI sw=550,sh=450,tfps=60;
-TFS{
-   REC r;
-}block;
-#define IF if
-ARR(minion , bb, 10);
-ARR(block, w, 10);
+
+//V2 has .x .y
+TFS{ V2 pos; V2 goal;}minion;
+TFS{ I type; }tile;
+
+//tile map 
+CI TS = 4; CI WW = 16; CI WH = 16;
+ARR(tile, map, WW*WH);
+enum tile{ NONE, BLOCK, };
+
+
+
 minion pl;
 CF Scale =.1, G = 9.81/Scale;
-V plT(){
-   pl.vel.x = 0;
-   pl.vel.y += G*GetFrameTime();
-   IF(IsKeyDown(KEY_A)){pl.vel.x = -3;}
-   IF(IsKeyDown(KEY_D)){pl.vel.x = 3;}
 
-#define IN(x,l,h) ((l)<=(x)&&(x)<=(h))
-   V2 npx=Vector2Add(pl.pos,(V2){pl.vel.x,0});
-   V2 npy=Vector2Add(pl.pos,(V2){0,pl.vel.y});
-   V2 npxy=Vector2Add(pl.pos,pl.vel);
-   Rectangle prx = { npx.x , npx.y, 40, 40 };
-   Rectangle pry = { npy.x , npy.y, 40, 40 };
-   I COLX=0,COLY=0;
-   FOR(w_c,{
-      COLX+=CheckCollisionRecs(prx, w[i].r);
-      COLY+=CheckCollisionRecs(pry, w[i].r);
+//GREAT pathing alogtrim
+V2 goNext(minion m){
+   //if(m.pos.x==m.goal.x&&m.pos.y==m.goal.y){R m.pos;}
+   I mapFill[WW*WH]; 
+   FOR(WW*WH,{mapFill[i]=-1;});
+   mapFill[(I)m.goal.x+(I)m.goal.y*WW]=1;
+   FOR(WW*WH,{ 
+      FORYX(WH,WW,{
+         if(mapFill[(x)+y*WW]!=-1){continue;}
+         if(x<WW-1)if(mapFill[(x+1)+y*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x+1)+y*WW]+1;}
+         if(x>0 )if(mapFill[(x-1)+y*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x-1)+y*WW]+1;}
+
+         if(y<WH-1)if(mapFill[(x)+(y+1)*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x)+(y+1)*WW]+1;}
+         if(y>0 )if(mapFill[(x)+(y-1)*WW]>mapFill[(x)+y*WW]){mapFill[(x)+y*WW]=mapFill[(x)+(y-1)*WW]+1;}
+      });
+      if(mapFill[(I)m.pos.x+(I)(m.pos.y)*WW]>0){BR;}
    });
-   if(COLX){pl.vel.x=0;}
-   if(COLY){pl.vel.y=0;}
-   pl.pos=Vector2Add(pl.pos, pl.vel);
+   V2 rv = m.pos; 
+   I dirs[4]={
+      mapFill[(I)(m.pos.x-1)+(I)(m.pos.y)*WW],
+      m.pos.x>0?mapFill[(I)(m.pos.x+1)+(I)(m.pos.y)*WW]:-1,     
+      mapFill[(I)(m.pos.x)+(I)(m.pos.y+1)*WW],
+      mapFill[(I)(m.pos.x)+(I)(m.pos.y-1)*WW]
+   };
+   FOR(4,{if(dirs[i]<0){dirs[i]=999999;}});
+   I min= mapFill[(I)(m.pos.x)+(I)(m.pos.y)*WW];
+   I d=-1;
+   FOR(4,{
+      if(dirs[i]<min){d=i;min= dirs[i];}
+   })
+   if(d==0){rv.x--;}
+   if(d==1){rv.x++;}
+   if(d==2){rv.y++;}
+   if(d==3){rv.y--;}
+   R rv;
+}
+
+V plT(){
+   pl.pos=goNext(pl); 
 }
 V tick(){
    plT();
-   if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-      PUSH((minion){GetMousePosition()},bb); 
-   }
-   FOR(bb_c,{
-      if(Vector2Distance(bb[i].pos, (V2){(F)sw/2, (F)sh/2}) < .01){ POP(bb, i);BR; }
-      if(bb[i].pos.x>(F)sw/2)bb[i].pos.x-=1;
-      if(bb[i].pos.x<(F)sw/2)bb[i].pos.x+=1;
-      if(bb[i].pos.y>(F)sh/2)bb[i].pos.y-=1;
-      if(bb[i].pos.y<(F)sh/2)bb[i].pos.y+=1;
-   });
 }
 V render(){
-   FOR(bb_c,{ DrawCircle(bb[i].pos.x, bb[i].pos.y,6, YELLOW); });
-   FOR(w_c,{ DrawRectangleRec(w[i].r , RAYWHITE);});
-   Rectangle pr = { pl.pos.x , pl.pos.y, 40, 40 };
+   FOR(map_m,{if(map[i].type==BLOCK){ DrawRectangleRec((REC){ i%WW*TS,i/WW*TS,TS,TS} , RAYWHITE);}});
+   Rectangle pr = { pl.pos.x*TS , pl.pos.y*TS, TS, TS };
    DrawRectangleRec((pr), RED);
 }
 
 V startGame(I dif){
-   IARR(bb); IARR(w);
-   block b=(block){(REC){10,sh-50,sw-200,40}};
-   PUSH(b,w);
-   b=(block){(REC){10,100,5,sh}}; PUSH(b,w);
-   pl=(minion){(V2){100,333}};
+   IARR(map);
+   FOR(map_m,{ 
+      if(rand()%7==1){
+         map[i].type=BLOCK;}else{
+         map[i].type=NONE;
+      }
+   });
+   pl=(minion){(V2){5,5},(V2){10,10}};
 }
 V clear(){
-   FREEARR(bb);
-   FREEARR(w);
+   FREEARR(map);
 }
 V init(){
    InitWindow(sw, sh, "ld55");
