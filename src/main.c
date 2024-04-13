@@ -8,13 +8,13 @@
 CI sw=550,sh=450,tfps=60;
 minion pl;
 CF Scale =.1, G = 9.81/Scale;
-
 V plT(){
    pl.pos=goNext(pl); 
 }
-V tick(){
-   plT();
-}
+
+
+
+V tick(){ plT(); }
 V render(){
    FOR(map_m,{if(map[i].type==BLOCK){ DrawRectangleRec((REC){ i%WW*TS,i/WW*TS,TS,TS} , RAYWHITE);}});
    Rectangle pr = { pl.pos.x*TS , pl.pos.y*TS, TS, TS };
