@@ -11,8 +11,15 @@ F camx, camy;
 minion pl;
 Camera2D camera={0};
 CF Scale =.1, G = 9.81/Scale;
+
 V plT(){
-   pl.pos=goNext(pl); 
+   if(Vector2Distance(pl.pos,pl.next)<pl.ms){pl.pos=pl.next; pl.next=goNext(pl); }
+   else if(Vector2Distance(pl.pos,pl.next)>2){ pl.next=goNext(pl); }
+
+   if(pl.pos.x<pl.next.x){pl.pos.x+=pl.ms;}
+   if(pl.pos.x>pl.next.x){pl.pos.x-=pl.ms;}
+   if(pl.pos.y<pl.next.y){pl.pos.y+=pl.ms;}
+   if(pl.pos.y>pl.next.y){pl.pos.y-=pl.ms;}
 }
 
 V tick(){
@@ -25,7 +32,6 @@ V render(){
    Rectangle pr = { pl.pos.x*TS , pl.pos.y*TS, TS, TS };
    DrawRectangleRec((pr), RED);
    EndMode2D();
-
 }
 
 V startGame(I dif){
@@ -42,7 +48,8 @@ V startGame(I dif){
    camera.rotation = 0.0f;
    camera.zoom = .5f;
 
-   pl=(minion){(V2){5,5},(V2){100,100}};
+   pl=(minion){(V2){(I)(WW/2),WH-2},(V2){(I)(WW/2),1}};
+   pl.ms=.1;
 }
 V clear(){
    FREEARR(map);
