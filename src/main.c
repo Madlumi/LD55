@@ -22,12 +22,12 @@ V plT(){
    V2 npx=Vector2Add(pl.pos,(V2){pl.vel.x,0});
    V2 npy=Vector2Add(pl.pos,(V2){0,pl.vel.y});
    V2 npxy=Vector2Add(pl.pos,pl.vel);
+   Rectangle prx = { npx.x , npx.y, 40, 40 };
+   Rectangle pry = { npy.x , npy.y, 40, 40 };
    I COLX=0,COLY=0;
    FOR(w_c,{
-       COLX += IN(npx.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npx.y, w[i].r.y, w[i].r.height+w[i].r.y);
-       COLY += IN(npx.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npy.y, w[i].r.y, w[i].r.height+w[i].r.y);
-       //COLX += IN(npxy.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npxy.y, w[i].r.y, w[i].r.height+w[i].r.y);
-       //COLY += IN(npxy.x, w[i].r.x, w[i].r.width+w[i].r.x)*IN(npxy.y, w[i].r.y, w[i].r.height+w[i].r.y);
+      COLX+=CheckCollisionRecs(prx, w[i].r);
+      COLY+=CheckCollisionRecs(pry, w[i].r);
    });
    if(COLX){pl.vel.x=0;}
    if(COLY){pl.vel.y=0;}
@@ -49,7 +49,7 @@ V tick(){
 V render(){
    FOR(bb_c,{ DrawCircle(bb[i].pos.x, bb[i].pos.y,6, YELLOW); });
    FOR(w_c,{ DrawRectangleRec(w[i].r , RAYWHITE);});
-   Rectangle pr = { pl.pos.x - 20, pl.pos.y - 40, 40, 40 };
+   Rectangle pr = { pl.pos.x , pl.pos.y, 40, 40 };
    DrawRectangleRec((pr), RED);
 }
 
