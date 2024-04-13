@@ -5,16 +5,34 @@
 TFS{
    Vector2 pos;
 }bee;
-   CI sw=550,sh=450,tfps=60;
-   bee b;
+CI sw=550,sh=450,tfps=60;
+
+
+ARR(bee , bb, 10);
+
+bee b;
+
 V tick(){
+   if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+      AARR((bee){GetMousePosition()},bb); 
+   }
    b.pos=GetMousePosition();
+   FOR(bb_c,{
+      if(bb[i].pos.x>(F)sw/2 )bb[i].pos.x-=1;
+      if(bb[i].pos.x<(F)sw/2 )bb[i].pos.x+=1;
+      if(bb[i].pos.y>(F)sh/2 )bb[i].pos.y-=1;
+      if(bb[i].pos.y<(F)sh/2 )bb[i].pos.y+=1;
+   });
 }
 V render(){
+   FOR(bb_c,{
+      DrawCircle(bb[i].pos.x, bb[i].pos.y,6, YELLOW);
+   });
       DrawCircle(b.pos.x, b.pos.y,10, DARKBLUE);
       DrawText("base window", (sw/2)-50, (sh-20)/2, 20, LIGHTGRAY);
 }
 V startGame(I dif){
+   IARR(bb);
    b.pos=(Vector2){50,50};
 }
 V init(){
