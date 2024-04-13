@@ -22,6 +22,7 @@ run: linux
 runwin: windows
 	./$(od)$(name).exe
 runweb: wasm
+	firefox-esr http://0.0.0.0:$(p)/
 	cd $(wd) && python3 -m http.server $(p)
 
 
@@ -37,7 +38,7 @@ windows:
 wasm:
 	-mkdir $(od)
 	-mkdir $(wd)
-	$(e_gcc) $(files) -sASYNCIFY -s USE_GLFW=3 -o web/corn_healing_blade.html -I/home/madi/proj/c/raylibw/src -L/home/madi/proj/c/raylibw/src -lm -lglfw -lraylib --shell-file src/web/base.html --preload-file res -s ALLOW_MEMORY_GROWTH=1
+	$(e_gcc) $(files) -sASYNCIFY -s USE_GLFW=3 -o $(wd)$(name).html -I$(rlw)src -L$(rlw)src -lm -lglfw -lraylib -s ALLOW_MEMORY_GROWTH=1
 
 #--Release-----------------------
 windows_rel: windows
