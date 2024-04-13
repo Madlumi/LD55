@@ -1,6 +1,6 @@
-
+#include "util/mutil.h"
 #include <stdio.h>
-int main(){
+I main(){
    printf("uwu\n");
-   return 0;
+   R 0;
 }

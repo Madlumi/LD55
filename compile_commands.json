@@ -1,0 +1,14 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-o",
+      "out/ld55",
+      "src/main.c"
+    ],
+    "directory": "/home/madi/proj/c/ld55",
+    "file": "/home/madi/proj/c/ld55/src/main.c",
+    "output": "/home/madi/proj/c/ld55/out/ld55"
+  }
+]
