@@ -6,6 +6,12 @@ typedef   double      D;
 typedef   char        C;
 typedef   void        V;
 
+typedef const  int         CI;
+typedef const  float       CF;
+typedef const  double      CD;
+typedef const  char        CC;
+typedef const  void        CV;
+
 
 #define CON const
 #define R return 
